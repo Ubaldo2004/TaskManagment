@@ -1,12 +1,4 @@
 import React from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  useTheme,
-  useMediaQuery,
-  Grid
-} from '@mui/material';
 import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
 import { TaskCard } from './TaskCard';
 import { Task } from '../types/Task';
@@ -22,12 +14,13 @@ interface Column {
   id: string;
   title: string;
   status: Task['status'];
+  color: string;
 }
 
 const columns: Column[] = [
-  { id: 'todo', title: 'Pendientes', status: 'todo' },
-  { id: 'in-progress', title: 'En Progreso', status: 'in-progress' },
-  { id: 'done', title: 'Completadas', status: 'done' }
+  { id: 'todo', title: 'Pendientes', status: 'todo', color: 'bg-orange-50 border-orange-200' },
+  { id: 'in-progress', title: 'En Progreso', status: 'in-progress', color: 'bg-blue-50 border-blue-200' },
+  { id: 'done', title: 'Completadas', status: 'done', color: 'bg-green-50 border-green-200' }
 ];
 
 export const TaskBoard: React.FC<TaskBoardProps> = ({
@@ -36,9 +29,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   onTaskDelete,
   onTaskUpdate
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
@@ -59,87 +49,53 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     return tasks.filter(task => task.status === status);
   };
 
-  const getColumnColor = (columnId: string) => {
-    switch (columnId) {
-      case 'todo':
-        return '#fff3e0';
-      case 'in-progress':
-        return '#e3f2fd';
-      case 'done':
-        return '#e8f5e8';
-      default:
-        return '#f5f5f5';
-    }
-  };
-
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
-        <Grid container spacing={2}>
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {columns.map((column) => {
             const columnTasks = getTasksByStatus(column.status);
             
             return (
-              <Grid item xs={12} md={4} key={column.id}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    backgroundColor: getColumnColor(column.id),
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 2,
-                    p: 2,
-                    minHeight: '70vh'
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      mb: 2,
-                      fontWeight: 600,
-                      color: theme.palette.text.primary,
-                      textAlign: 'center'
-                    }}
-                  >
+              <div key={column.id} className={`rounded-lg border-2 ${column.color} p-4 min-h-[600px]`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">
                     {column.title}
-                    <Typography component="span" variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
-                      ({columnTasks.length})
-                    </Typography>
-                  </Typography>
+                  </h3>
+                  <span className="bg-gray-200 text-gray-700 text-sm px-2 py-1 rounded-full">
+                    {columnTasks.length}
+                  </span>
+                </div>
 
-                  <Droppable droppableId={column.id}>
-                    {(provided, snapshot) => (
-                      <Box
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        sx={{
-                          minHeight: 200,
-                          backgroundColor: snapshot.isDraggingOver 
-                            ? 'rgba(25, 118, 210, 0.1)' 
-                            : 'transparent',
-                          borderRadius: 1,
-                          transition: 'background-color 0.2s ease',
-                          p: 1
-                        }}
-                      >
-                        {columnTasks.map((task, index) => (
-                          <TaskCard
-                            key={task.id}
-                            task={task}
-                            index={index}
-                            onEdit={onTaskEdit}
-                            onDelete={onTaskDelete}
-                          />
-                        ))}
-                        {provided.placeholder}
-                      </Box>
-                    )}
-                  </Droppable>
-                </Paper>
-              </Grid>
+                <Droppable droppableId={column.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`min-h-[500px] rounded-lg p-2 transition-colors ${
+                        snapshot.isDraggingOver 
+                          ? 'bg-blue-100 bg-opacity-50' 
+                          : 'transparent'
+                      }`}
+                    >
+                      {columnTasks.map((task, index) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          index={index}
+                          onEdit={onTaskEdit}
+                          onDelete={onTaskDelete}
+                        />
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </div>
             );
           })}
-        </Grid>
-      </Box>
+        </div>
+      </div>
     </DragDropContext>
   );
 };

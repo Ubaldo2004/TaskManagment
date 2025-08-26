@@ -1,23 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Box,
-  useTheme,
-  useMediaQuery
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { es } from 'date-fns/locale';
+import { X, Calendar, FileText, Tag } from 'lucide-react';
 import { Task } from '../types/Task';
 
 interface TaskModalProps {
@@ -35,9 +17,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   onSave
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -95,87 +74,110 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }));
   };
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      fullScreen={isMobile}
-      PaperProps={{
-        sx: {
-          borderRadius: isMobile ? 0 : 2
-        }
-      }}
-    >
-      <form onSubmit={handleSubmit}>
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          {task ? 'Editar Tarea' : 'Nueva Tarea'}
-        </DialogTitle>
+  const formatDateForInput = (date: Date | null) => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0];
+  };
 
-        <DialogContent sx={{ pt: 2 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <TextField
-              label="Título"
+  const parseDateFromInput = (dateString: string) => {
+    if (!dateString) return null;
+    return new Date(dateString + 'T00:00:00');
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {task ? 'Editar Tarea' : 'Nueva Tarea'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <FileText size={16} className="mr-2" />
+              Título *
+            </label>
+            <input
+              type="text"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
-              fullWidth
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ingresa el título de la tarea"
               required
-              variant="outlined"
             />
+          </div>
 
-            <TextField
-              label="Descripción"
+          <div>
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <FileText size={16} className="mr-2" />
+              Descripción
+            </label>
+            <textarea
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              fullWidth
-              multiline
               rows={3}
-              variant="outlined"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              placeholder="Describe la tarea (opcional)"
             />
+          </div>
 
-            <FormControl fullWidth>
-              <InputLabel>Estado</InputLabel>
-              <Select
-                value={formData.status}
-                onChange={(e) => handleChange('status', e.target.value)}
-                label="Estado"
-              >
-                <MenuItem value="todo">Pendiente</MenuItem>
-                <MenuItem value="in-progress">En Progreso</MenuItem>
-                <MenuItem value="done">Completado</MenuItem>
-              </Select>
-            </FormControl>
+          <div>
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <Tag size={16} className="mr-2" />
+              Estado
+            </label>
+            <select
+              value={formData.status}
+              onChange={(e) => handleChange('status', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="todo">Pendiente</option>
+              <option value="in-progress">En Progreso</option>
+              <option value="done">Completado</option>
+            </select>
+          </div>
 
-            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
-              <DatePicker
-                label="Fecha de vencimiento"
-                value={formData.dueDate}
-                onChange={(date) => handleChange('dueDate', date)}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    variant: 'outlined'
-                  }
-                }}
-              />
-            </LocalizationProvider>
-          </Box>
-        </DialogContent>
+          <div>
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <Calendar size={16} className="mr-2" />
+              Fecha de vencimiento
+            </label>
+            <input
+              type="date"
+              value={formatDateForInput(formData.dueDate)}
+              onChange={(e) => handleChange('dueDate', parseDateFromInput(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
 
-        <DialogActions sx={{ p: 3, pt: 2 }}>
-          <Button onClick={onClose} color="inherit">
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={!formData.title.trim()}
-          >
-            {task ? 'Actualizar' : 'Crear'}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={!formData.title.trim()}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-md transition-colors"
+            >
+              {task ? 'Actualizar' : 'Crear'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
