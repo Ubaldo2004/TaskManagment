@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "taskmanagment"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "taskmanagment-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./example"]
